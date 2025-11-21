@@ -84,7 +84,9 @@ def cislo_text_divne(cislo):#přepisuce čísla, která nešla zapsat pomocí os
         return ""
 
 if __name__ == "__main__":
-    x=0
+    def cislo_text():
+        text = cislo_text_desitky(cislo)+mezera(cislo)+cislo_text_jednotky(cislo)+cislo_text_divne(cislo)
+        print (text)
+
     cislo = input("Zadej číslo: ")
-    text = cislo_text_desitky(cislo)+mezera(cislo)+cislo_text_jednotky(cislo)+cislo_text_divne(cislo)
-    print(text)
+    cislo_text()
