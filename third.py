@@ -30,12 +30,12 @@ def je_prvocislo(cislo):
     i = 0
     #for delitel in range(2, round(cislo**0.5)):
     for delitel in range(3, 1+round(cislo**0.5),2):
-        #time.sleep(0.001)
+        time.sleep(0.001)
         if cislo % delitel == 0:
-            #print(f'Iterace {i}')
+            print(f'Iterace {i}')
             return False
-        #i += 1
-    #print(f'Iterace: {i}')
+        i += 1
+    print(f'Iterace: {i}')
     return True
 
 def vrat_prvocisla(maximum):
