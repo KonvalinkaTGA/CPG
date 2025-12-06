@@ -25,18 +25,8 @@ def spocitej_statistiku(text):
     for znak in obsah:
         if znak==" "or znak==".":
             pocet_slov+=1
+    
         
-
-
-   x=1
-    while x<len(text):
-        if obsah[x-1]=="." and obsah[x]==" ":
-            pocet_slov-=1
-        x+=1
-        
-
-        
-
 
     pocet_radku+=1
     for znak in obsah:
