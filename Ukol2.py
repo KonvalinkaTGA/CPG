@@ -28,11 +28,11 @@ def spocitej_statistiku(text):
         
 
 
-    #x=1
-    #while x<=len(text):
-        #if znak[x-1]in obsah=="." and znak[x]in obsah==" ":
-            #pocet_slov-=1
-        #x+=1
+   x=1
+    while x<len(text):
+        if obsah[x-1]=="." and obsah[x]==" ":
+            pocet_slov-=1
+        x+=1
         
 
         
