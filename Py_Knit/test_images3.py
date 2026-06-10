@@ -13,7 +13,6 @@ temp_path = None
 
 
 def add_knit2_at(pozice_y: int, pozice_x: int, filename: str = 'knit2.png'):
-    """Register a knit placement for the requested position."""
     placement = {
         'file': filename,
         'pozice_y': pozice_y,
@@ -145,14 +144,7 @@ def render_placements(tile_filename: str = 'knit2.png', output_path: Optional[st
     return output_path
 
 
-def concat_images(image_paths, size: Tuple[int, int] = DEFAULT_TILE_SIZE, shape=None, vertical_factor: float = 1):
-    # Open images and resize them with alpha support
-    width, height = size
-    images = map(Image.open, image_paths)
-    images = [image.convert('RGBA').resize(size, RESAMPLE)
-              for image in images]
-
-    # Create canvas for the final image with total size
+    # Vytváření cancasu
     shape = shape if shape else (1, len(images))
     canvas_width = width * shape[1]
     if shape[0] == 1:
@@ -225,3 +217,4 @@ atexit.register(cleanup_temp)
 
 if __name__ == '__main__':
     main()
+
