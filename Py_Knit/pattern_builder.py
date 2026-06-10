@@ -129,54 +129,79 @@ class AktualniOko(PatternRozpr):
         self._last_x = 0
 
 
+def _import_test_images3():
+    try:
+        from . import test_images3
+    except ImportError:
+        import test_images3
+    return test_images3
+
+
+class StitchAction:
+    def matches(self, symbol: str, smer: bool) -> bool:
+        raise NotImplementedError
+
+    def get_filename(self, smer: bool) -> str:
+        raise NotImplementedError
+
+    def perform(self, ctene_oko: str, pozice_x: int, pozice_y: int, smer: bool) -> bool:
+        if not ctene_oko:
+            return False
+
+        symbol = ctene_oko[0]
+        if not self.matches(symbol, smer):
+            return False
+
+        test_images3 = _import_test_images3()
+        test_images3.add_knit2_at(pozice_y, pozice_x, filename=self.get_filename(smer))
+        return True
+
+
+class KnitAction(StitchAction):
+    def matches(self, symbol: str, smer: bool) -> bool:
+        return (not smer and symbol == 'k') or (smer and symbol == 'p')
+
+    def get_filename(self, smer: bool) -> str:
+        return 'knit2.png'
+
+
+class PurlAction(StitchAction):
+    def matches(self, symbol: str, smer: bool) -> bool:
+        return (not smer and symbol == 'p') or (smer and symbol == 'k')
+
+    def get_filename(self, smer: bool) -> str:
+        return 'purl2.png'
+
+
+class BindOffAction(StitchAction):
+    def matches(self, symbol: str, smer: bool) -> bool:
+        return symbol == 'b'
+
+    def get_filename(self, smer: bool) -> str:
+        return 'bind_off1.png' if smer else 'bind_off2.png'
+
+
 class Oko(AktualniOko):
     #posílá instrukce do image makeru
 
+    def __init__(self, text: str, tam_zpet: bool = False):
+        super().__init__(text, tam_zpet=tam_zpet)
+        self._actions = [KnitAction(), PurlAction(), BindOffAction()]
+
+    def apply_instruction(self, pozice_x: int, pozice_y: int):
+        for action in self._actions:
+            if action.perform(self.ctene_oko, pozice_x, pozice_y, self.smer):
+                return action
+        return None
+
     def knit(self, pozice_x: int, pozice_y: int):
-        if not self.ctene_oko:
-            return False
-
-        symbol = self.ctene_oko[0]
-        if (not self.smer and symbol == 'k') or (self.smer and symbol == 'p'):
-            try:
-                from . import test_images3
-            except ImportError:
-                import test_images3
-            test_images3.add_knit2_at(pozice_y, pozice_x)
-            return True
-
-        return False
+        return self._actions[0].perform(self.ctene_oko, pozice_x, pozice_y, self.smer)
 
     def purl(self, pozice_x: int, pozice_y: int):
-        if not self.ctene_oko:
-            return False
-
-        symbol = self.ctene_oko[0]
-        if (not self.smer and symbol == 'p') or (self.smer and symbol == 'k'):
-            try:
-                from . import test_images3
-            except ImportError:
-                import test_images3
-            test_images3.add_knit2_at(pozice_y, pozice_x, filename='purl2.png')
-            return True
-
-        return False
+        return self._actions[1].perform(self.ctene_oko, pozice_x, pozice_y, self.smer)
 
     def bind_off(self, pozice_x: int, pozice_y: int):
-        if not self.ctene_oko:
-            return False
-
-        symbol = self.ctene_oko[0]
-        if symbol == 'b':
-            try:
-                from . import test_images3
-            except ImportError:
-                import test_images3
-            filename = 'bind_off1.png' if self.smer else 'bind_off2.png'
-            test_images3.add_knit2_at(pozice_y, pozice_x, filename=filename)
-            return True
-
-        return False
+        return self._actions[2].perform(self.ctene_oko, pozice_x, pozice_y, self.smer)
 
 
 def process_pattern(raw_text: str, tam_zpet: bool = False):
@@ -195,23 +220,8 @@ def process_pattern(raw_text: str, tam_zpet: bool = False):
 
             pozice_x = oko.current_position_x() + rada.pozice_x
             pozice_y = rada.pozice_y
-            if oko.knit(pozice_x, pozice_y):
-                placements.append({
-                    'cislo_rady': rada.cislo_rady,
-                    'pozice_x': pozice_x,
-                    'pozice_y': pozice_y,
-                    'ctene_oko': oko.ctene_oko,
-                    'smer': oko.smer,
-                })
-            elif oko.purl(pozice_x, pozice_y):
-                placements.append({
-                    'cislo_rady': rada.cislo_rady,
-                    'pozice_x': pozice_x,
-                    'pozice_y': pozice_y,
-                    'ctene_oko': oko.ctene_oko,
-                    'smer': oko.smer,
-                })
-            elif oko.bind_off(pozice_x, pozice_y):
+            action = oko.apply_instruction(pozice_x, pozice_y)
+            if action:
                 placements.append({
                     'cislo_rady': rada.cislo_rady,
                     'pozice_x': pozice_x,
@@ -220,8 +230,6 @@ def process_pattern(raw_text: str, tam_zpet: bool = False):
                     'smer': oko.smer,
                 })
 
-        count = rada.aktualni_rada.count('b')
-        rada.cumulative_indent += count
 
     return placements
 
